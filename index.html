@@ -1,110 +1,27 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#173f35">
-<link rel="manifest" href="manifest.webmanifest">
-<title>餐補小幫手</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#173f35"><link rel="manifest" href="manifest.webmanifest"><title>餐補小幫手｜測試版</title>
 <style>
-:root{--green:#173f35;--mint:#e7f2ec;--paper:#f6f7f3;--ink:#1d2924;--muted:#69756f;--line:#dce4de;--white:#fff;--orange:#df8b48}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
-header{background:var(--green);color:white;padding:25px 20px 30px;border-radius:0 0 24px 24px}
-header .eyebrow{font-size:12px;letter-spacing:.12em;opacity:.8}h1{font-size:25px;margin:7px 0 4px}header p{margin:0;font-size:13px;opacity:.85}
-main{max-width:760px;margin:-12px auto 40px;padding:0 14px}
-.panel,.stat{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 14px #142b1a08}
-label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}input{width:100%;border:1px solid var(--line);border-radius:11px;padding:12px;font:inherit;background:white;color:var(--ink)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-button{border:0;border-radius:12px;padding:12px 15px;font:inherit;font-weight:650;cursor:pointer}
-.primary{background:var(--green);color:white;width:100%;margin-top:12px}.secondary{background:var(--mint);color:var(--green)}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{margin:0;padding:14px}.stat .label{font-size:12px;color:var(--muted)}.stat strong{display:block;font-size:23px;margin-top:5px;letter-spacing:-.03em}.stat small{font-size:11px;color:var(--muted)}
-.section-title{display:flex;align-items:center;justify-content:space-between;margin:22px 3px 10px}.section-title h2{font-size:17px;margin:0}
-.pill{font-size:11px;background:var(--mint);color:var(--green);padding:5px 8px;border-radius:20px}
-.record{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.record:last-child{border-bottom:0}.record .date{font-size:12px;color:var(--muted)}.record .desc{font-weight:650;margin-top:3px;overflow-wrap:anywhere}.record .amount{text-align:right;font-weight:750;white-space:nowrap}.record .meta{font-size:11px;color:var(--muted);margin-top:3px}
-.status{font-size:13px;padding:10px 12px;border-radius:10px;background:#fff4e8;color:#77441d;line-height:1.5;margin-top:10px;display:none}.status.show{display:block}.empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}
-.note{font-size:12px;color:var(--muted);line-height:1.6}.footer{font-size:11px;color:var(--muted);text-align:center;padding:20px}
-@media(min-width:600px){.stats{grid-template-columns:repeat(3,1fr)}}
-</style>
-</head>
-<body>
-<header><div class="eyebrow">PERSONAL BENEFITS</div><h1>餐補小幫手</h1><p>快速查看當日餐補與刷餐紀錄</p></header>
-<main>
-<section class="panel">
-  <div class="fields">
-    <div><label for="employee">員工編號</label><input id="employee" inputmode="numeric" autocomplete="off" placeholder="輸入自己的員工編號"></div>
-    <div><label for="day">查詢日期</label><input id="day" type="date"></div>
-    <div><label for="capBefore">每日上限（11/28 前）</label><input id="capBefore" type="number" min="0" value="300"></div>
-    <div><label for="capAfter">每日上限（11/29 起）</label><input id="capAfter" type="number" min="0" value="150"></div>
-  </div>
-  <button id="load" class="primary">查詢當日紀錄</button>
-  <div id="status" class="status" role="status"></div>
-  <p class="note">請只查詢自己的員工編號。此 API 依文件描述不需登入，員工編號本身不是身分驗證。</p>
-</section>
-<div class="stats">
-  <div class="stat"><div class="label">當日刷餐總額</div><strong id="total">—</strong><small>排除已刪除／已取消紀錄</small></div>
-  <div class="stat"><div class="label">當日有效筆數</div><strong id="count">—</strong><small>依 API 回傳資料計算</small></div>
-  <div class="stat"><div class="label">估算剩餘餐補</div><strong id="remaining">—</strong><small>依每日上限估算，需核對公司規則</small></div>
-  <div class="stat"><div class="label">7-ELEVEN 可刷金額</div><strong id="sevenTotal">—</strong><small>剩餘餐補 ÷ 0.85（85 折）</small></div>
-</div>
-<div class="section-title"><h2>刷餐紀錄</h2><span id="range" class="pill">尚未查詢</span></div>
-<section class="panel" id="records"><div class="empty">選擇日期並輸入員工編號後查詢，即可查看當天紀錄。</div></section>
-<section class="panel">
-  <strong style="font-size:14px">關於剩餘額度估算</strong>
-  <p class="note">目前依文件提到的規則估算當日剩餘額度：2026/11/28（含）以前每日上限 300 元，之後每日上限 150 元。以當天有效紀錄的 amount 扣除每日上限；若 amount 是折扣前金額，或公司另有折扣／額度規則，估算可能不同。7-ELEVEN 可刷金額以「剩餘餐補 ÷ 0.85」估算，表示折後金額不超過剩餘餐補；實際結帳仍可能受商品折扣規則、四捨五入或不可折抵品項影響。</p>
-</section>
-<div class="footer">餐補小幫手 · 個人查詢工具 · 不會把員工編號或紀錄儲存在瀏覽器</div>
-</main>
+:root{--green:#173f35;--mint:#e7f2ec;--paper:#f6f7f3;--ink:#1d2924;--muted:#69756f;--line:#dce4de;--white:#fff;--warning:#fff4e8}*{box-sizing:border-box;min-width:0}html{width:100%;overflow-x:hidden}body{margin:0;width:100%;overflow-x:hidden;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;-webkit-text-size-adjust:100%}header{background:var(--green);color:#fff;padding:18px max(16px,calc((100vw - 680px)/2)) 25px;border-radius:0 0 24px 24px}header .eyebrow{font-size:12px;letter-spacing:.12em;opacity:.8}h1{font-size:24px;margin:5px 0 3px}header p{margin:0;font-size:14px;opacity:.88}main{width:100%;max-width:760px;margin:-12px auto 0;padding:0 12px calc(20px + env(safe-area-inset-bottom))}.panel,.stat{background:#fff;border:1px solid var(--line);border-radius:18px;padding:13px;margin-bottom:10px;box-shadow:0 4px 16px #142b1a08}.field-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px 10px}.field{min-width:0}label{display:block;font-size:12px;color:var(--muted);margin:0 0 4px}input,select{display:block;width:100%;max-width:100%;min-width:0;height:43px;border:1px solid var(--line);border-radius:12px;padding:0 10px;font:inherit;font-size:15px;background:#fff;color:var(--ink)}input[type=date]{padding-right:8px}input[type=number]{appearance:textfield}input[type=number]::-webkit-inner-spin-button{appearance:none}.saved-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.saved-row select{width:auto;flex:1 1 120px;min-width:0;height:36px;font-size:13px;padding:0 8px}.saved-row button{flex:0 0 auto;height:36px;padding:7px 10px;font-size:13px}.button{border:0;border-radius:11px;padding:9px 12px;font:inherit;font-weight:650;cursor:pointer}.secondary{background:var(--mint);color:var(--green)}.primary{display:block;width:100%;min-height:46px;background:var(--green);color:#fff;margin-top:10px;font-size:16px}.primary:disabled{opacity:.65}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px}.stat{margin:0;padding:11px;min-width:0}.stat .label{font-size:13px;color:var(--muted);line-height:1.45}.stat strong{display:block;font-size:23px;line-height:1.2;overflow-wrap:anywhere;margin:4px 0 2px;letter-spacing:-.03em}.stat small{display:block;font-size:12px;color:var(--muted);line-height:1.5}.section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 3px 7px}.section-title h2{font-size:17px;margin:0}.pill{font-size:11px;background:var(--mint);color:var(--green);padding:5px 8px;border-radius:20px;white-space:nowrap}.record{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.record:last-child{border-bottom:0}.record .date{font-size:12px;color:var(--muted)}.record .desc{font-weight:650;margin-top:3px;overflow-wrap:anywhere}.record .amount{text-align:right;font-weight:750;white-space:nowrap}.record .meta{font-size:11px;color:var(--muted);margin-top:3px}.status{font-size:13px;padding:10px 12px;border-radius:10px;background:var(--warning);color:#77441d;line-height:1.5;margin-top:10px;display:none;overflow-wrap:anywhere}.status.show{display:block}.empty{color:var(--muted);font-size:13px;padding:18px 0;text-align:center}.note{font-size:11px;color:var(--muted);line-height:1.5;margin:8px 0 0;overflow-wrap:anywhere}.footer{font-size:11px;color:var(--muted);text-align:center;padding:20px 0}.test-banner{margin:8px 0 0;padding:7px 9px;border:1px solid #e5c49d;background:#fff7ed;border-radius:12px;color:#78491f;font-size:12px;line-height:1.5}
+@media(max-width:380px){main{padding-left:8px;padding-right:8px}.panel{padding:11px;border-radius:15px}.field-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stats{gap:7px}.stat{padding:9px}.stat strong{font-size:20px}.saved-row{gap:4px}.saved-row select{flex-basis:100%}.saved-row button{flex:1;padding-left:7px;padding-right:7px}.section-title h2{font-size:15px}}
+@media(min-width:600px){main{padding-left:20px;padding-right:20px}.field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head><body>
+<header><div class="eyebrow">PERSONAL BENEFITS</div><h1>餐補小幫手</h1><p>快速查看當日餐補與刷餐紀錄</p><div class="test-banner">測試版｜API 路徑、CORS 與餐補計算尚未完成驗證，請勿視為正式可用。</div></header>
+<main><section class="panel"><div class="field-grid">
+<div class="field"><label for="employee">員工編號</label><input id="employee" inputmode="numeric" autocomplete="off" placeholder="輸入員工編號"><div class="saved-row"><select id="saved" aria-label="已記住的員工編號"><option value="">選擇已記住的編號</option></select><button id="remember" class="button secondary" type="button">記住</button><button id="remove" class="button secondary" type="button">刪除</button></div></div>
+<div class="field"><label for="date">查詢日期</label><input id="date" type="date"></div>
+<div class="field"><label for="capBefore">每日上限（11/28 前）</label><input id="capBefore" type="number" min="0" inputmode="numeric" value="300"></div>
+<div class="field"><label for="capAfter">每日上限（11/29 起）</label><input id="capAfter" type="number" min="0" inputmode="numeric" value="150"></div>
+</div><button id="load" class="button primary" type="button">查詢當日紀錄</button><div id="status" class="status" role="status"></div><p class="note">員工編號只會儲存在這台裝置的瀏覽器。請只查詢公司授權範圍內的資料；清除網站資料後，已記住的編號可能消失。</p></section>
+<div class="stats"><div class="stat"><div class="label">當日刷餐總額</div><strong id="total">—</strong><small>排除已刪除／已取消紀錄</small></div><div class="stat"><div class="label">當日有效筆數</div><strong id="count">—</strong><small>依 API 回傳資料計算</small></div><div class="stat"><div class="label">估算剩餘餐補</div><strong id="remaining">—</strong><small>依每日上限估算，需核對公司規則</small></div><div class="stat"><div class="label">7-ELEVEN 可刷金額</div><strong id="seven">—</strong><small>以剩餘額度 ÷ 0.85 估算</small></div></div>
+<div class="section-title"><h2>當日刷餐紀錄</h2><span id="range" class="pill">尚未查詢</span></div><section class="panel" id="records"><div class="empty">輸入員工編號並選擇日期後查詢。</div></section>
+<section class="panel"><strong style="font-size:14px">估算說明</strong><p class="note">每日上限預設為 2026/11/28（含）前 300 元、2026/11/29 起 150 元；7-ELEVEN 金額以 85 折估算。這些數值仍需依公司正式規則確認。若 API 回傳金額含折扣或欄位定義不同，估算可能不準確。</p></section><div class="footer">餐補小幫手 · 測試版 · API 與 CORS 尚未驗證</div></main>
 <script>
-const API='https://pos-api-micron.dudooeat.com/reports/employeesDiningRecords';
-const $=id=>document.getElementById(id);
-const money=n=>Number.isFinite(Number(n))?new Intl.NumberFormat('zh-TW',{style:'currency',currency:'TWD',maximumFractionDigits:0}).format(Number(n)):'—';
-const today=new Date(); $('day').value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-function showStatus(msg){$('status').textContent=msg;$('status').classList.add('show')}
-function clearStatus(){$('status').textContent='';$('status').classList.remove('show')}
-function parseDate(v){if(!v)return null;const d=new Date(String(v).replace(/-/g,'/'));return Number.isNaN(d.getTime())?null:d}
-function dateText(v){if(!v)return '日期未知';return String(v).replace('T',' ').slice(0,16)}
-function amountOf(r){for(const k of ['amount','dining_amount','total_amount','price','cost','meal_amount'])if(r[k]!==undefined&&r[k]!==null&&r[k]!=='')return Number(r[k])||0;return 0}
-function validRecords(payload){let arr=payload?.data?.records??payload?.records??[];if(!Array.isArray(arr))return [];return arr.filter(r=>!r.deleted&&(!r.cancel_time||['0000-00-00 00:00:00','',null].includes(r.cancel_time)))}
-function estimateRemaining(records,start,end){
-  const capBefore=Number($('capBefore').value)||0,capAfter=Number($('capAfter').value)||0;
-  const spent=records.reduce((sum,r)=>sum+amountOf(r),0);
-  const cap=start<='2026/11/28'?capBefore:capAfter;
-  return Math.max(0,cap-spent);
-}
-function render(records,start,end){
-  const total=records.reduce((s,r)=>s+amountOf(r),0);$('total').textContent=money(total);$('count').textContent=records.length.toLocaleString('zh-TW');
-  const remaining=estimateRemaining(records,start,end);
-  $('remaining').textContent=money(remaining);
-  $('sevenTotal').textContent=money(Math.floor((remaining/0.85)*100)/100);
-  $('range').textContent=start===end?start:`${start}–${end}`;
-  const sorted=[...records].sort((a,b)=>String(b.meal_time||b.dining_at||'').localeCompare(String(a.meal_time||a.dining_at||'')));
-  if(!sorted.length){$('records').innerHTML='<div class="empty">這個日期區間沒有有效紀錄。</div>';return}
-  $('records').innerHTML=sorted.map(r=>{
-    const dt=r.meal_time||r.dining_at||r.date||'日期未知';
-    const desc=r.meal_name||r.store_name||r.merchant_name||r.shop_name||r.cost_center||'刷餐紀錄';
-    const extra=[r.meal_type,r.card_no?`卡號 ${String(r.card_no).slice(-4)}`:''].filter(Boolean).join(' · ');
-    return `<div class="record"><div><div class="date">${dateText(dt)}</div><div class="desc">${escapeHtml(desc)}</div><div class="meta">${escapeHtml(extra||'')}</div></div><div class="amount">${money(amountOf(r))}</div></div>`
-  }).join('');
-}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-$('load').addEventListener('click',async()=>{
- clearStatus();const emp=$('employee').value.trim(),day=$('day').value;
- if(!/^[A-Za-z0-9_-]{3,30}$/.test(emp)){showStatus('請輸入有效的員工編號。');return}
- if(!day){showStatus('請選擇查詢日期。');return}
- const [y,mo,d]=day.split('-').map(Number),date=`${y}/${String(mo).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
- $('load').disabled=true;$('load').textContent='查詢中…';
- try{
-  const body=new URLSearchParams({employee_sn:emp,start_date:date,end_date:date});
-  const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-  if(!res.ok)throw new Error(`HTTP ${res.status}`);
-  const payload=await res.json();
-  if(payload.success===false)throw new Error(payload.error?.message||'API 回傳查詢失敗');
-  const records=validRecords(payload);render(records,date,date);
-  if(!payload.data?.records&&!Array.isArray(payload.records))showStatus('API 已回應，但回傳欄位與目前預期不同。請提供遮蔽個資後的 JSON 範例，以調整欄位對應。');
- }catch(e){
-  showStatus('查詢失敗：'+(e instanceof TypeError?'瀏覽器可能被 API 的跨網域（CORS）政策擋住，或網路無法連線。若確認是 CORS，需要由私人後端代理呼叫 API。':e.message));
- }finally{$('load').disabled=false;$('load').textContent='查詢當日紀錄'}
-});
-if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
-</script>
-</body></html>
+const API='https://pos-api-micron.dudooeat.com/reports/employeesDiningRecords';const $=id=>document.getElementById(id);const money=n=>Number.isFinite(Number(n))?new Intl.NumberFormat('zh-TW',{style:'currency',currency:'TWD',maximumFractionDigits:0}).format(Number(n)):'—';const now=new Date();$('date').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+function showStatus(msg){$('status').textContent=msg;$('status').classList.add('show')}function clearStatus(){$('status').textContent='';$('status').classList.remove('show')}function dateFmt(v){return v?String(v).replace('T',' ').slice(0,16):'日期未知'}function amountOf(r){for(const k of ['amount','dining_amount','total_amount','price','cost','meal_amount'])if(r[k]!==undefined&&r[k]!==null&&r[k]!=='')return Number(r[k])||0;return 0}function validRecords(payload){const arr=payload?.data?.records??payload?.records??[];if(!Array.isArray(arr))return [];return arr.filter(r=>!r.deleted&&(!r.cancel_time||['0000-00-00 00:00:00','',null].includes(r.cancel_time)))}function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function refreshSaved(){let arr=[];try{arr=JSON.parse(localStorage.getItem('canbu_employee_ids')||'[]')}catch{}$('saved').innerHTML='<option value="">選擇已記住的編號</option>'+arr.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}
+$('saved').addEventListener('change',()=>{if($('saved').value)$('employee').value=$('saved').value});$('remember').addEventListener('click',()=>{const v=$('employee').value.trim();if(!/^[A-Za-z0-9_-]{3,30}$/.test(v)){showStatus('請先輸入有效的員工編號。');return}let a=[];try{a=JSON.parse(localStorage.getItem('canbu_employee_ids')||'[]')}catch{}if(!a.includes(v))a.push(v);localStorage.setItem('canbu_employee_ids',JSON.stringify(a));refreshSaved();$('saved').value=v;showStatus('已記住此編號（僅限這台裝置的瀏覽器）。')});$('remove').addEventListener('click',()=>{const v=$('saved').value||$('employee').value.trim();let a=[];try{a=JSON.parse(localStorage.getItem('canbu_employee_ids')||'[]')}catch{}a=a.filter(x=>x!==v);localStorage.setItem('canbu_employee_ids',JSON.stringify(a));refreshSaved();showStatus(v?'已從本機清單移除。':'請先選擇要刪除的編號。')});
+function render(records,date){const total=records.reduce((s,r)=>s+amountOf(r),0);const [y,m,d]=date.split('-').map(Number);const cap=date<='2026-11-28'?Number($('capBefore').value||0):Number($('capAfter').value||0);const remaining=Math.max(0,cap-total);$('total').textContent=money(total);$('count').textContent=records.length.toLocaleString('zh-TW');$('remaining').textContent=money(remaining);$('seven').textContent=money(Math.floor(remaining/0.85));$('range').textContent=`${m}/${d}`;const sorted=[...records].sort((a,b)=>String(b.meal_time||b.dining_at||b.date||'').localeCompare(String(a.meal_time||a.dining_at||a.date||'')));if(!sorted.length){$('records').innerHTML='<div class="empty">這一天沒有有效紀錄。</div>';return}$('records').innerHTML=sorted.map(r=>{const dt=r.meal_time||r.dining_at||r.date||'日期未知';const desc=r.meal_name||r.store_name||r.merchant_name||r.shop_name||r.cost_center||'刷餐紀錄';const extra=[r.meal_type,r.card_no?`卡號末四碼 ${String(r.card_no).slice(-4)}`:''].filter(Boolean).join(' · ');return `<div class="record"><div><div class="date">${escapeHtml(dateFmt(dt))}</div><div class="desc">${escapeHtml(desc)}</div><div class="meta">${escapeHtml(extra)}</div></div><div class="amount">${money(amountOf(r))}</div></div>`}).join('')}
+$('load').addEventListener('click',async()=>{clearStatus();const emp=$('employee').value.trim(),date=$('date').value;if(!/^[A-Za-z0-9_-]{3,30}$/.test(emp)){showStatus('請輸入有效的員工編號。');return}if(!date){showStatus('請選擇查詢日期。');return}const [y,m,d]=date.split('-');const day=`${y}/${m}/${d}`;$('load').disabled=true;$('load').textContent='查詢中…';try{const body=new URLSearchParams({employee_sn:emp,start_date:day,end_date:day});const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});if(!res.ok)throw new Error(`HTTP ${res.status}`);const payload=await res.json();if(payload.success===false)throw new Error(payload.error?.message||'API 回傳查詢失敗');const records=validRecords(payload);render(records,date);if(!payload?.data?.records&&!Array.isArray(payload?.records))showStatus('API 已回應，但資料欄位與預期不同；目前結果尚不能視為已驗證。')}catch(e){showStatus('查詢失敗：'+(e instanceof TypeError?'可能是 API 路徑錯誤、CORS 跨網域限制或網路問題。請勿將此版本標示為正式可用。':e.message))}finally{$('load').disabled=false;$('load').textContent='查詢當日紀錄'}});refreshSaved();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script></body></html>
